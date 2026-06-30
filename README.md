@@ -16,7 +16,7 @@ Web app link: https://goueguel.github.io/etalon-fringe-explorer/
   - fringe amplitude
   - fringe order at the operating wavenumber
   - number of fringes in the displayed spectral window
-  - transmission at fixed $ν_₀$
+  - transmission at fixed $\nu_₀$
 - Presets for uncoated windows, AR-coated surfaces, high-finesse cavities, and oblique incidence.
 - Time-trace drift simulation showing how a small refractive-index drift can produce slow detector-signal oscillations at a fixed laser wavenumber.
 
@@ -36,7 +36,7 @@ $$ \phi = \frac{4\pi nL \textbf{cos}(\theta)}{\lambda} $$
 
 Airy transmission:  
 
-$$ T(\phi) = \frac{1}{[1 + F\textbf{sin^{2}}(\frac{\phi}{2})]} $$
+$$ T(\phi) = \frac{1}{[1 + F\textbf{sin}^{2}(\frac{\phi}{2})]} $$
 
 Coefficient:        
 
@@ -44,11 +44,11 @@ $$ F = \frac{4R}{(1-R)^{2}} $$
 
 FSR:                
 
-$$ \frac{1}{[2nL \textbf{cos}(\theta)]} $$
+$$ \frac{1}{2nL \textbf{cos}(\theta)} $$
 
 
-In the app, the spectrum is plotted versus wavenumber $ν$ in $cm^{-1}$, so the phase is evaluated as: 
+In the app, the spectrum is plotted versus wavenumber $\nu$ in $\text{cm}^{-1}$, so the phase is evaluated as: 
 
-$$ \phi = 4\pi nL \textbf{cos}(\theta)\nu $$
+$$ \phi = 4\pi nL \textbf{cos}(\theta) \nu $$
 
 where $L$ is converted to centimeters.
