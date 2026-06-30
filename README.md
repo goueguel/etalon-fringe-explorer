@@ -1,22 +1,14 @@
 # Educational Fringe Explorer
 
-An interactive, browser-based teaching tool for exploring optical etalon fringes, Airy transmission, free spectral range, finesse, fringe amplitude, and slow drift effects relevant to TDLAS baseline fringes.
+An interactive, browser-based teaching tool for exploring optical etalon fringes, Airy transmission, free spectral range, finesse, fringe amplitude, and slow drift effects relevant to tunable diode laser absorption spectroscopy (TDLAS) baseline fringes. The app is a standalone HTML/CSS/JavaScript web app. It runs locally in any browser and does not require a build step, package installation, backend server, or external JavaScript libraries.
 
-The app is a standalone HTML/CSS/JavaScript web app. It runs locally in any modern browser and does not require a build step, package installation, backend server, or external JavaScript libraries.
+Web app link: https://goueguel.github.io/etalon-fringe-explorer/
 
-## Live app
-
-After enabling GitHub Pages for this repository, the app can be served directly from `index.html`.
-
-Recommended GitHub Pages setting:
-
-- **Source:** GitHub Actions
-- **Workflow:** `.github/workflows/pages.yml`
 
 ## Features
 
 - Interactive Airy transmission plot.
-- Sliders for refractive index `n`, gap length `L`, internal angle `θ`, and surface reflectivity `R`.
+- Sliders for refractive index $n$, gap length $L$, internal angle $θ$, and surface reflectivity $R$.
 - Real-time derived quantities:
   - free spectral range, FSR
   - finesse
