@@ -30,19 +30,19 @@ Fringe maxima:
 
 $$ 2nL \textbf{cos}(\theta) = m\lambda $$
 
-Phase:              
+Fringe phase:              
 
 $$ \phi = \frac{4\pi nL \textbf{cos}(\theta)}{\lambda} $$
 
-Airy transmission:  
+Airy transmission function:  
 
-$$ T(\phi) = \frac{1}{[1 + F\textbf{sin}^{2}(\frac{\phi}{2})]} $$
+$$ T(\phi) = \frac{1}{1 + F\textbf{sin}^{2}(\frac{\phi}{2})} $$
 
-Coefficient:        
+Finesse coefficient:        
 
 $$ F = \frac{4R}{(1-R)^{2}} $$
 
-FSR:                
+Free spectral range (FSR):                
 
 $$ \frac{1}{2nL \textbf{cos}(\theta)} $$
 
