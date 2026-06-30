@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etalon Fringe Explorer</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 18px 20px 28px;
+  background: #f4f4ee;
+  color: #222;
+  line-height: 1.4;
+}
+
+h1 {
+  font-size: 1.5em;
+  margin: 0 0 4px 0;
+  color: #1a3a5c;
+}
+
+.subtitle {
+  font-size: 0.93em;
+  color: #555;
+  margin: 0 0 18px 0;
+}
+
+.equation {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-style: italic;
+  background: #fff8dc;
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: 1px solid #d4b873;
+  display: inline-block;
+  font-size: 1em;
+  margin: 0 2px;
+  white-space: nowrap;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 18px;
+  max-width: 1200px;
+}
+
+@media (max-width: 820px) {
+  .container { grid-template-columns: 1fr; }
+}
+
+.controls, .plot-area {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.control-group { margin-bottom: 14px; }
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 3px;
+}
+
+.label-row label {
+  font-weight: 600;
+  color: #1a3a5c;
+  font-size: 0.95em;
+}
+
+.label-row .value {
+  font-family: 'Menlo', 'Consolas', monospace;
+  color: #d62728;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+input[type=range] {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #1a3a5c;
+}
+
+.desc {
+  font-size: 0.77em;
+  color: #777;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.readouts {
+  margin: 14px 0 12px;
+  padding: 11px 13px;
+  background: #f8f8f3;
+  border: 1px solid #e6e6dd;
+  border-radius: 5px;
+}
+
+.readouts h3 {
+  margin: 0 0 7px 0;
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #777;
+  font-weight: 600;
+}
+
+.readout {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 0.86em;
+}
+
+.readout .key { color: #555; }
+.readout .val {
+  font-family: 'Menlo', 'Consolas', monospace;
+  color: #1a3a5c;
+  font-weight: 600;
+}
+
+.preset-label {
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #777;
+  font-weight: 600;
+  margin: 6px 0 5px;
+}
+
+.preset-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  background: #f0f0eb;
+  border: 1px solid #ccc;
+  color: #333;
+  padding: 5px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.77em;
+  font-family: inherit;
+}
+
+.preset-btn:hover {
+  background: #e4e4dd;
+  border-color: #999;
+}
+
+.drift-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 2px solid #e6e6dd;
+}
+
+.drift-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.drift-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.83em;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  background: #f0f0eb;
+  color: #333;
+  font-weight: 600;
+}
+
+.drift-btn:hover {
+  background: #e4e4dd;
+  border-color: #999;
+}
+
+.drift-btn.primary {
+  background: #1a3a5c;
+  color: white;
+  border-color: #1a3a5c;
+}
+
+.drift-btn.primary:hover {
+  background: #2a5078;
+}
+
+.drift-btn.primary.running {
+  background: #a83232;
+  border-color: #a83232;
+}
+
+.drift-btn.primary.running:hover {
+  background: #c04545;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#plot { aspect-ratio: 8 / 5; }
+#trace { aspect-ratio: 8 / 3; }
+
+.trace-divider {
+  height: 1px;
+  background: #e8e8e2;
+  margin: 14px 0 10px;
+}
+
+.hint {
+  margin-top: 10px;
+  font-size: 0.82em;
+  color: #666;
+  padding: 8px 12px;
+  background: #f0f4f8;
+  border-left: 3px solid #1a3a5c;
+  border-radius: 3px;
+}
+</style>
+</head>
+<body>
+
+<h1>Etalon Fringe Explorer</h1>
+<p class="subtitle">
+  Drag the sliders to deform the Airy pattern, or start the drift simulation to watch the
+  detector signal at fixed ν₀ "breathe" as n drifts with time.<br>
+  Fringe maxima:&nbsp;<span class="equation">2 n L cos θ = m λ</span>&nbsp;&nbsp;
+  Transmission:&nbsp;<span class="equation">T(φ) = 1 / [1 + F sin²(φ/2)]</span>&nbsp;&nbsp;
+  with&nbsp;<span class="equation">φ = 4πnL cos θ / λ</span>,&nbsp;<span class="equation">F = 4R/(1−R)²</span>.
+</p>
+
+<div class="container">
+  <div class="controls">
+    <div class="control-group">
+      <div class="label-row">
+        <label>n &nbsp;refractive index</label>
+        <span class="value" id="n-val">1.0000</span>
+      </div>
+      <input type="range" id="n" min="1.000" max="2.500" step="0.0001" value="1.000">
+      <div class="desc">Tiny δn slides the pattern in wavenumber.</div>
+    </div>
+
+    <div class="control-group">
+      <div class="label-row">
+        <label>L &nbsp;gap length</label>
+        <span class="value" id="L-val">10.0 mm</span>
+      </div>
+      <input type="range" id="L" min="1" max="100" step="0.5" value="10">
+      <div class="desc">FSR = 1 / (2 n L cos θ). Larger L → denser fringes.</div>
+    </div>
+
+    <div class="control-group">
+      <div class="label-row">
+        <label>θ &nbsp;internal angle</label>
+        <span class="value" id="theta-val">0.0°</span>
+      </div>
+      <input type="range" id="theta" min="0" max="60" step="0.2" value="0">
+      <div class="desc">cos θ stretches the fringe period at oblique angles.</div>
+    </div>
+
+    <div class="control-group">
+      <div class="label-row">
+        <label>R &nbsp;surface reflectivity</label>
+        <span class="value" id="R-val">0.040</span>
+      </div>
+      <input type="range" id="R" min="0.001" max="0.95" step="0.001" value="0.04">
+      <div class="desc">Higher R → sharper peaks, deeper troughs.</div>
+    </div>
+
+    <div class="readouts">
+      <h3>Derived quantities</h3>
+      <div class="readout"><span class="key">Free spectral range, FSR</span><span class="val" id="fsr-out">—</span></div>
+      <div class="readout"><span class="key">Finesse 𝓕</span><span class="val" id="finesse-out">—</span></div>
+      <div class="readout"><span class="key">Peak FWHM</span><span class="val" id="fwhm-out">—</span></div>
+      <div class="readout"><span class="key">Fringe amplitude ΔT</span><span class="val" id="dT-out">—</span></div>
+      <div class="readout"><span class="key">Fringe order m at ν₀</span><span class="val" id="m-out">—</span></div>
+      <div class="readout"><span class="key">Fringes in view</span><span class="val" id="nfringes-out">—</span></div>
+      <div class="readout"><span class="key">T(ν₀) (red dot)</span><span class="val" id="tnu0-out">—</span></div>
+    </div>
+
+    <div class="preset-label">Try a preset</div>
+    <div class="preset-row">
+      <button class="preset-btn" data-preset="uncoated">Uncoated window</button>
+      <button class="preset-btn" data-preset="ar">AR-coated</button>
+      <button class="preset-btn" data-preset="cavity">High-finesse cavity</button>
+      <button class="preset-btn" data-preset="oblique">Oblique 45°</button>
+      <button class="preset-btn" data-preset="reset">Reset</button>
+    </div>
+
+    <div class="drift-section">
+      <div class="preset-label">Time-trace drift simulation</div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <label>dn/dt &nbsp;drift rate</label>
+          <span class="value" id="rate-val">+1.0×10⁻⁴ /s</span>
+        </div>
+        <input type="range" id="rate" min="-5" max="5" step="0.1" value="1">
+        <div class="desc">Models the thermo-optic drift of n during warmup. Units: ×10⁻⁴ /s.</div>
+      </div>
+
+      <div class="drift-buttons">
+        <button class="drift-btn primary" id="drift-toggle">▶ Start drift</button>
+        <button class="drift-btn" id="trace-clear">↺ Clear trace</button>
+      </div>
+    </div>
+
+    <div class="hint">
+      <strong>Try this:</strong> click <em>Start drift</em> and watch the lower plot —
+      the detector signal at fixed ν₀ "breathes" as n drifts. This is the slow oscillation
+      you see in a real TDLAS trace during instrument warmup. The red dot in the upper plot
+      marks the current operating point on the spectrum.
+    </div>
+  </div>
+
+  <div class="plot-area">
+    <canvas id="plot" width="800" height="500"></canvas>
+    <div class="trace-divider"></div>
+    <canvas id="trace" width="800" height="280"></canvas>
+  </div>
+</div>
+
+<script>
+// ==== State ====
+const defaults = { n: 1.0, L: 10.0, theta_deg: 0.0, R: 0.04 };
+const state = { ...defaults };
+
+const presets = {
+  uncoated: { n: 1.5,  L: 3.0,   theta_deg: 0,  R: 0.04  },
+  ar:       { n: 1.5,  L: 3.0,   theta_deg: 0,  R: 0.003 },
+  cavity:   { n: 1.0,  L: 10.0,  theta_deg: 0,  R: 0.85  },
+  oblique:  { n: 1.5,  L: 10.0,  theta_deg: 45, R: 0.04  },
+  reset:    { ...defaults }
+};
+
+const NU0 = 5000.0;            // cm⁻¹  (~2 µm wavelength)
+const NU_RANGE = 5.0;          // cm⁻¹  (full plot width)
+const NU_MIN = NU0 - NU_RANGE / 2;
+const NU_MAX = NU0 + NU_RANGE / 2;
+
+const canvas = document.getElementById('plot');
+const ctx = canvas.getContext('2d');
+
+const traceCanvas = document.getElementById('trace');
+const traceCtx = traceCanvas.getContext('2d');
+
+// === Drift / time-trace state ===
+const traceState = {
+  enabled: false,
+  driftRate: 0.0001,        // δn per second
+  history: [],              // {t: seconds, T: 0..1}
+  startTime: null,
+  lastTime: null,
+  windowSec: 30,            // visible time window (s)
+  maxBuffer: 5000           // hard cap on history length
+};
+
+// === Physics ===
+function airyT(nu_cm, n, L_cm, cos_theta, F) {
+  const phi = 4 * Math.PI * n * L_cm * cos_theta * nu_cm;
+  const s = Math.sin(phi / 2);
+  return 1 / (1 + F * s * s);
+}
+
+function currentT_at_nu0() {
+  const R = state.R;
+  const F = 4 * R / Math.pow(1 - R, 2);
+  const L_cm = state.L / 10;
+  const cos_theta = Math.cos(state.theta_deg * Math.PI / 180);
+  return airyT(NU0, state.n, L_cm, cos_theta, F);
+}
+
+// === High-DPI canvas resize helper ===
+function resizeCanvasIfNeeded(cnv) {
+  const rect = cnv.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const needW = Math.max(1, Math.round(rect.width * dpr));
+  const needH = Math.max(1, Math.round(rect.height * dpr));
+  if (cnv.width !== needW || cnv.height !== needH) {
+    cnv.width = needW;
+    cnv.height = needH;
+  }
+  return { W: cnv.width / dpr, H: cnv.height / dpr, dpr };
+}
+
+// === Drawing : Airy spectrum ===
+function draw() {
+  const { W, H, dpr } = resizeCanvasIfNeeded(canvas);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  const ml = 72, mr = 24, mt = 36, mb = 56;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const R = state.R;
+  const F = 4 * R / Math.pow(1 - R, 2);
+  const finesse = Math.PI * Math.sqrt(R) / (1 - R);
+  const L_cm = state.L / 10;
+  const theta_rad = state.theta_deg * Math.PI / 180;
+  const cos_theta = Math.cos(theta_rad);
+  const FSR = 1 / (2 * state.n * L_cm * cos_theta);
+
+  // Y gridlines
+  ctx.strokeStyle = '#ececec';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const tval = i / 5;
+    const y = mt + (1 - tval / 1.05) * ph;
+    ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + pw, y); ctx.stroke();
+  }
+  // X gridlines
+  const nTicks = 5;
+  for (let i = 1; i < nTicks; i++) {
+    const x = ml + i * pw / nTicks;
+    ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + ph); ctx.stroke();
+  }
+
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth = 1.1;
+  ctx.strokeRect(ml, mt, pw, ph);
+
+  ctx.font = '11.5px -apple-system, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i <= 5; i++) {
+    const tval = i / 5;
+    const y = mt + (1 - tval / 1.05) * ph;
+    ctx.fillText(tval.toFixed(1), ml - 7, y);
+  }
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let i = 0; i <= nTicks; i++) {
+    const nu = NU_MIN + i * NU_RANGE / nTicks;
+    const x = ml + i * pw / nTicks;
+    ctx.fillText(nu.toFixed(2), x, mt + ph + 6);
+  }
+
+  ctx.fillStyle = '#222';
+  ctx.font = 'bold 12.5px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('Wavenumber  ν  (cm⁻¹)', ml + pw / 2, H - 10);
+
+  ctx.save();
+  ctx.translate(20, mt + ph / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textBaseline = 'top';
+  ctx.fillText('Transmission  T(ν)', 0, 0);
+  ctx.restore();
+
+  ctx.fillStyle = '#1a3a5c';
+  ctx.font = '600 13px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Airy transmission', ml + 4, mt + 6);
+
+  // Airy curve
+  const N = 6000;
+  const path = new Path2D();
+  for (let i = 0; i <= N; i++) {
+    const nu = NU_MIN + NU_RANGE * i / N;
+    const T = airyT(nu, state.n, L_cm, cos_theta, F);
+    const x = ml + (i / N) * pw;
+    const y = mt + (1 - T / 1.05) * ph;
+    if (i === 0) path.moveTo(x, y);
+    else path.lineTo(x, y);
+  }
+
+  const fillPath = new Path2D(path);
+  fillPath.lineTo(ml + pw, mt + ph);
+  fillPath.lineTo(ml, mt + ph);
+  fillPath.closePath();
+  ctx.fillStyle = 'rgba(31, 119, 180, 0.10)';
+  ctx.fill(fillPath);
+
+  ctx.strokeStyle = '#1f77b4';
+  ctx.lineWidth = 1.7;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.stroke(path);
+
+  // ν₀ vertical guide + current operating-point dot
+  const x0 = ml + 0.5 * pw;
+  ctx.strokeStyle = '#999';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(x0, mt);
+  ctx.lineTo(x0, mt + ph);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const T_at_nu0 = airyT(NU0, state.n, L_cm, cos_theta, F);
+  const y0 = mt + (1 - T_at_nu0 / 1.05) * ph;
+  ctx.fillStyle = '#d62728';
+  ctx.beginPath();
+  ctx.arc(x0, y0, 5.5, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+
+  ctx.fillStyle = '#555';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('ν₀', x0, mt + ph + 22);
+
+  // Readouts
+  const m_at_nu0 = 2 * state.n * L_cm * cos_theta * NU0;
+  document.getElementById('fsr-out').textContent = formatCM(FSR);
+  document.getElementById('finesse-out').textContent = finesse < 100 ? finesse.toFixed(2) : finesse.toFixed(0);
+  document.getElementById('fwhm-out').textContent = formatCM(FSR / finesse);
+  const dT = F / (1 + F);
+  document.getElementById('dT-out').textContent = (dT * 100).toFixed(1) + ' %';
+  document.getElementById('m-out').textContent = Math.round(m_at_nu0).toLocaleString();
+  document.getElementById('nfringes-out').textContent = (NU_RANGE / FSR).toFixed(1);
+  document.getElementById('tnu0-out').textContent = T_at_nu0.toFixed(3);
+}
+
+// === Drawing : time-trace ===
+function drawTrace() {
+  const { W, H, dpr } = resizeCanvasIfNeeded(traceCanvas);
+  traceCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  traceCtx.fillStyle = '#ffffff';
+  traceCtx.fillRect(0, 0, W, H);
+
+  const ml = 72, mr = 24, mt = 30, mb = 50;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const tNow = traceState.history.length > 0
+    ? traceState.history[traceState.history.length - 1].t
+    : 0;
+  const tMax = Math.max(tNow, traceState.windowSec);
+  const tMin = tMax - traceState.windowSec;
+
+  // Y gridlines
+  traceCtx.strokeStyle = '#ececec';
+  traceCtx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const tval = i / 5;
+    const y = mt + (1 - tval / 1.05) * ph;
+    traceCtx.beginPath(); traceCtx.moveTo(ml, y); traceCtx.lineTo(ml + pw, y); traceCtx.stroke();
+  }
+  // X gridlines
+  const nTicks = 6;
+  for (let i = 1; i < nTicks; i++) {
+    const x = ml + i * pw / nTicks;
+    traceCtx.beginPath(); traceCtx.moveTo(x, mt); traceCtx.lineTo(x, mt + ph); traceCtx.stroke();
+  }
+
+  traceCtx.strokeStyle = '#444';
+  traceCtx.lineWidth = 1.1;
+  traceCtx.strokeRect(ml, mt, pw, ph);
+
+  traceCtx.font = '11.5px -apple-system, sans-serif';
+  traceCtx.fillStyle = '#555';
+  traceCtx.textAlign = 'right';
+  traceCtx.textBaseline = 'middle';
+  for (let i = 0; i <= 5; i++) {
+    const tval = i / 5;
+    const y = mt + (1 - tval / 1.05) * ph;
+    traceCtx.fillText(tval.toFixed(1), ml - 7, y);
+  }
+
+  traceCtx.textAlign = 'center';
+  traceCtx.textBaseline = 'top';
+  for (let i = 0; i <= nTicks; i++) {
+    const t = tMin + i * (tMax - tMin) / nTicks;
+    const x = ml + i * pw / nTicks;
+    traceCtx.fillText(t.toFixed(0), x, mt + ph + 6);
+  }
+
+  traceCtx.fillStyle = '#222';
+  traceCtx.font = 'bold 12px -apple-system, sans-serif';
+  traceCtx.textAlign = 'center';
+  traceCtx.textBaseline = 'bottom';
+  traceCtx.fillText('Elapsed time (s)', ml + pw / 2, H - 8);
+
+  traceCtx.save();
+  traceCtx.translate(20, mt + ph / 2);
+  traceCtx.rotate(-Math.PI / 2);
+  traceCtx.textBaseline = 'top';
+  traceCtx.fillText('T(ν₀)', 0, 0);
+  traceCtx.restore();
+
+  traceCtx.fillStyle = '#1a3a5c';
+  traceCtx.font = '600 12px -apple-system, sans-serif';
+  traceCtx.textAlign = 'left';
+  traceCtx.textBaseline = 'top';
+  traceCtx.fillText('Detector signal at ν₀  vs.  time', ml + 4, mt + 5);
+
+  if (traceState.history.length === 0) {
+    traceCtx.fillStyle = '#aaa';
+    traceCtx.font = 'italic 12px -apple-system, sans-serif';
+    traceCtx.textAlign = 'center';
+    traceCtx.textBaseline = 'middle';
+    traceCtx.fillText('Click "Start drift" to record a trace…', ml + pw / 2, mt + ph / 2);
+    return;
+  }
+
+  // Trace curve
+  traceCtx.strokeStyle = '#1f77b4';
+  traceCtx.lineWidth = 1.6;
+  traceCtx.lineJoin = 'round';
+  traceCtx.lineCap = 'round';
+  traceCtx.beginPath();
+  let first = true;
+  for (const pt of traceState.history) {
+    if (pt.t < tMin) continue;
+    const x = ml + (pt.t - tMin) / (tMax - tMin) * pw;
+    const y = mt + (1 - pt.T / 1.05) * ph;
+    if (first) { traceCtx.moveTo(x, y); first = false; }
+    else { traceCtx.lineTo(x, y); }
+  }
+  traceCtx.stroke();
+
+  // Current operating point — red dot
+  const last = traceState.history[traceState.history.length - 1];
+  const x_last = ml + (last.t - tMin) / (tMax - tMin) * pw;
+  const y_last = mt + (1 - last.T / 1.05) * ph;
+  traceCtx.fillStyle = '#d62728';
+  traceCtx.beginPath();
+  traceCtx.arc(x_last, y_last, 4.5, 0, 2 * Math.PI);
+  traceCtx.fill();
+  traceCtx.strokeStyle = '#ffffff';
+  traceCtx.lineWidth = 1.3;
+  traceCtx.stroke();
+}
+
+function formatCM(x) {
+  if (x >= 1)      return x.toFixed(3) + ' cm⁻¹';
+  if (x >= 0.001)  return x.toFixed(4) + ' cm⁻¹';
+  return x.toExponential(2) + ' cm⁻¹';
+}
+
+function formatRate(r) {
+  if (Math.abs(r) < 1e-9) return '0 /s';
+  const scaled = r * 1e4;
+  const sign = scaled >= 0 ? '+' : '−';
+  return `${sign}${Math.abs(scaled).toFixed(1)}×10⁻⁴ /s`;
+}
+
+// === Slider handlers ===
+const fmt = {
+  n:         v => v.toFixed(4),
+  L:         v => v.toFixed(1) + ' mm',
+  theta_deg: v => v.toFixed(1) + '°',
+  R:         v => v.toFixed(3)
+};
+
+function syncSliders() {
+  document.getElementById('n').value     = state.n;
+  document.getElementById('L').value     = state.L;
+  document.getElementById('theta').value = state.theta_deg;
+  document.getElementById('R').value     = state.R;
+  document.getElementById('n-val').textContent     = fmt.n(state.n);
+  document.getElementById('L-val').textContent     = fmt.L(state.L);
+  document.getElementById('theta-val').textContent = fmt.theta_deg(state.theta_deg);
+  document.getElementById('R-val').textContent     = fmt.R(state.R);
+}
+
+[
+  ['n',     'n'],
+  ['L',     'L'],
+  ['theta', 'theta_deg'],
+  ['R',     'R']
+].forEach(([id, key]) => {
+  document.getElementById(id).addEventListener('input', e => {
+    state[key] = parseFloat(e.target.value);
+    document.getElementById(id + '-val').textContent = fmt[key](state[key]);
+    draw();
+  });
+});
+
+// Drift rate slider (UI in 10⁻⁴ /s units)
+document.getElementById('rate').addEventListener('input', e => {
+  const ui = parseFloat(e.target.value);
+  traceState.driftRate = ui * 1e-4;
+  document.getElementById('rate-val').textContent = formatRate(traceState.driftRate);
+});
+
+// Presets
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    Object.assign(state, presets[btn.dataset.preset]);
+    syncSliders();
+    draw();
+  });
+});
+
+// === Drift controls ===
+const toggleBtn = document.getElementById('drift-toggle');
+const clearBtn  = document.getElementById('trace-clear');
+
+toggleBtn.addEventListener('click', () => {
+  if (traceState.enabled) stopDrift();
+  else startDrift();
+});
+
+clearBtn.addEventListener('click', () => {
+  traceState.history = [];
+  traceState.startTime = null;
+  drawTrace();
+});
+
+function startDrift() {
+  traceState.enabled = true;
+  traceState.lastTime = performance.now();
+  if (traceState.startTime === null) {
+    traceState.startTime = traceState.lastTime;
+  }
+  toggleBtn.textContent = '⏸ Pause drift';
+  toggleBtn.classList.add('running');
+  requestAnimationFrame(tick);
+}
+
+function stopDrift() {
+  traceState.enabled = false;
+  toggleBtn.textContent = '▶ Start drift';
+  toggleBtn.classList.remove('running');
+}
+
+function tick(now) {
+  if (!traceState.enabled) return;
+
+  const dt = (now - traceState.lastTime) / 1000;
+  traceState.lastTime = now;
+
+  // Drift n, clamp at slider limits
+  let newN = state.n + traceState.driftRate * dt;
+  if (newN >= 2.5) { newN = 2.5; stopDrift(); }
+  if (newN <= 1.0) { newN = 1.0; stopDrift(); }
+  state.n = newN;
+
+  // Reflect in n slider
+  document.getElementById('n').value = newN;
+  document.getElementById('n-val').textContent = fmt.n(newN);
+
+  // Sample T(ν₀)
+  const t_sec = (now - traceState.startTime) / 1000;
+  traceState.history.push({ t: t_sec, T: currentT_at_nu0() });
+  if (traceState.history.length > traceState.maxBuffer) {
+    traceState.history.splice(0, traceState.history.length - traceState.maxBuffer);
+  }
+
+  draw();
+  drawTrace();
+
+  if (traceState.enabled) requestAnimationFrame(tick);
+}
+
+// Resize handling
+let resizePending = false;
+window.addEventListener('resize', () => {
+  if (resizePending) return;
+  resizePending = true;
+  requestAnimationFrame(() => {
+    draw();
+    drawTrace();
+    resizePending = false;
+  });
+});
+
+// Initial render
+syncSliders();
+document.getElementById('rate-val').textContent = formatRate(traceState.driftRate);
+requestAnimationFrame(() => { draw(); drawTrace(); });
+</script>
+
+</body>
+</html>
