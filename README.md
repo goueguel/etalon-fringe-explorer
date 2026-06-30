@@ -1,4 +1,4 @@
-# Educational Fringe Explorer
+# Etalon Fringe Explorer
 
 An interactive, browser-based teaching tool for exploring optical etalon fringes, Airy transmission, free spectral range, finesse, fringe amplitude, and slow drift effects relevant to tunable diode laser absorption spectroscopy (TDLAS) baseline fringes. The app is a standalone HTML/CSS/JavaScript web app. It runs locally in any browser and does not require a build step, package installation, backend server, or external JavaScript libraries.
 
@@ -42,9 +42,9 @@ Finesse coefficient:
 
 $$ F = \frac{4R}{(1-R)^{2}} $$
 
-Free spectral range (FSR):                
+Free spectral range:                
 
-$$ \frac{1}{2nL \textbf{cos}(\theta)} $$
+$$ FSR = \frac{1}{2nL \textbf{cos}(\theta)} $$
 
 
 In the app, the spectrum is plotted versus wavenumber $\nu$ in $\text{cm}^{-1}$, so the phase is evaluated as: 
