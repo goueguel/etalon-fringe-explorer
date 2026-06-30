@@ -32,19 +32,19 @@ $$ 2nL \textbf{cos}(\theta) = m\lambda $$
 
 Phase:              
 
-$$ \phi = \frac{4\pi nL \textbf{cos}(\theta)}{\lambda}
+$$ \phi = \frac{4\pi nL \textbf{cos}(\theta)}{\lambda} $$
 
 Airy transmission:  
 
-$$ T(\phi) = \frac{1}{[1 + F\textbf{sin^{2}}(\frac{\phi}{2})]}
+$$ T(\phi) = \frac{1}{[1 + F\textbf{sin^{2}}(\frac{\phi}{2})]} $$
 
 Coefficient:        
 
-$$ F = \frac{4R}{(1-R)^{2}}
+$$ F = \frac{4R}{(1-R)^{2}} $$
 
 FSR:                
 
-$$ \frac{1}{[2nL \textbf{cos}(\theta)]}
+$$ \frac{1}{[2nL \textbf{cos}(\theta)]} $$
 
 
 In the app, the spectrum is plotted versus wavenumber $ν$ in $cm^{-1}$, so the phase is evaluated as: 
